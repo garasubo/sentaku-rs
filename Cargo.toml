@@ -3,6 +3,9 @@ name = "sentaku"
 version = "0.1.0"
 authors = ["garasubo <garasubo@gmail.com>"]
 edition = "2018"
+license = "MIT"
+repository = "https://github.com/garasubo/sentaku-rs"
+description = "Provide sentaku CUI interface"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
