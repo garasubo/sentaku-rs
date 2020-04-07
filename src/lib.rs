@@ -7,6 +7,7 @@ use termion::clear;
 use termion::style::Reset;
 use termion::raw::IntoRawMode;
 
+/// Error during `wait_for_input`
 #[derive(Debug)]
 pub enum SentakuError {
     Canceled,
@@ -19,12 +20,15 @@ impl std::convert::From<std::io::Error> for SentakuError {
     }
 }
 
+/// Structure for each item to be chosen by the user
+/// `label` will be displayed and `value` will be returned when the user select the item
 pub struct SentakuItem<T> {
     label: String,
     value: T,
 }
 
 impl SentakuItem<String> {
+    /// construct `SentakuItem`. `value` will be the same as `label`.
     pub fn from_str(label: &str) -> Self {
         SentakuItem {
             label: String::from(label),
@@ -34,6 +38,7 @@ impl SentakuItem<String> {
 }
 
 impl<T> SentakuItem<T> {
+    /// construct `SentakuItem`.
     pub fn new(label: &str, value: T) -> Self {
         SentakuItem {
             label: String::from(label),
@@ -55,6 +60,8 @@ fn display_items<T>(stdout: &mut std::io::Stdout, items: &Vec<SentakuItem<T>>, p
     Ok(())
 }
 
+/// Wait for user input and return an item user selects
+/// If the user cancels the input or error happens in stdio, it returns `SentakuError`
 pub fn wait_for_input<T: Clone>(stdin: &mut std::io::Stdin, items: &Vec<SentakuItem<T>>) -> Result<T, SentakuError> {
     let mut stdout = std::io::stdout().into_raw_mode()?;
     let mut pos = 0;
