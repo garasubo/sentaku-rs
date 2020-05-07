@@ -11,3 +11,6 @@ readme = "README.md"
 
 [dependencies]
 termion = "1.5.5"
+
+[dev-dependencies]
+webbrowser = "0.5.2"
