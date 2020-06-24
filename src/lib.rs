@@ -1,12 +1,15 @@
+use std::collections::HashMap;
 use std::io::Write;
+
+use termion::clear;
+use termion::cursor;
 use termion::event::Key;
 use termion::input::TermRead;
-use termion::color;
-use termion::cursor;
-use termion::clear;
-use termion::style::Reset;
 use termion::raw::IntoRawMode;
-use std::collections::HashMap;
+
+use crate::cli::{SingleSentakuCli, MultiSentakuAction};
+
+pub mod cli;
 
 /// Error during `wait_for_input`
 #[derive(Debug)]
@@ -57,19 +60,6 @@ impl<T> SentakuItem<T> {
     }
 }
 
-fn display_items<T>(stdout: &mut std::io::Stdout, items: &Vec<SentakuItem<T>>, pos: usize) -> Result<(), std::io::Error> {
-    for i in 0..items.len() {
-        let item = &items[i];
-        if pos == i {
-            write!(stdout, "{}{}{}{}\r\n", color::Bg(color::Black), color::Fg(color::White), item.label, Reset)?;
-        } else {
-            write!(stdout, "{}\r\n", item.label)?;
-        }
-    }
-    stdout.flush()?;
-    Ok(())
-}
-
 /// Get default keymap
 /// `Key::Up`: move cursor up
 /// `Key::Down`: move cursor down
@@ -85,61 +75,38 @@ pub fn get_default_keymap<'a, T>() -> HashMap<Key, SentakuAction<'a, T>> {
     result
 }
 
+/// Get default keymap for multi select
+/// `Key::Up`: move cursor up
+/// `Key::Down`: move cursor down
+/// `Key::Char('\n')`: select current item
+/// `Key::Ctrl('c')`: cancel current selection
+pub fn get_default_multi_sentaku_keymap<'a, T>() -> HashMap<Key, MultiSentakuAction<'a, T>> {
+    let mut result = HashMap::new();
+    result.insert(Key::Up, MultiSentakuAction::Up);
+    result.insert(Key::Down, MultiSentakuAction::Down);
+    result.insert(Key::Char(' '), MultiSentakuAction::Select);
+    result.insert(Key::Char('\n'), MultiSentakuAction::Finish);
+    result.insert(Key::Ctrl('c'), MultiSentakuAction::Cancel);
+
+    result
+}
+
 /// Wait for user input and return an item user selects
 /// If the user cancels the input or error happens in stdio, it returns `SentakuError`.
 /// If `items` is an empty list, it also returns `SentakuError`.
 pub fn wait_for_input_with_keymap<'a, T: Clone>(
     stdin: &mut std::io::Stdin,
     items: &'a Vec<SentakuItem<T>>,
-    keymap: &HashMap<Key, SentakuAction<'a, T>>,
+    keymap: HashMap<Key, SentakuAction<'a, T>>,
 ) -> Result<T, SentakuError> {
-    if items.is_empty() {
-        return Err(SentakuError::EmptyList);
-    }
-    let mut stdout = std::io::stdout().into_raw_mode()?;
-    let mut pos = 0;
-    write!(stdout, "{}", cursor::Hide)?;
-    display_items(&mut stdout, items, pos)?;
-    let mut canceled = false;
-    for c in stdin.keys() {
-        let action = keymap.get(&c.unwrap());
-        match action {
-            Some(SentakuAction::Down) => {
-                pos = std::cmp::min(pos + 1, items.len() - 1);
-            },
-            Some(SentakuAction::Up) => {
-                pos = std::cmp::max(1, pos) - 1;
-            },
-            Some(SentakuAction::Select) => {
-                break;
-            },
-            Some(SentakuAction::Cancel) => {
-                canceled = true;
-                break;
-            },
-            Some(SentakuAction::Action(f)) => {
-                f(&items[pos].value);
-            }
-            _ => {}
-        }
-        write!(stdout, "{}{}", cursor::Up(items.len() as u16), clear::AfterCursor)?;
-        display_items(&mut stdout, items, pos)?;
-    }
-
-    write!(stdout, "{}", cursor::Show)?;
-    stdout.flush().unwrap();
-    if canceled {
-        Err(SentakuError::Canceled)
-    } else {
-        Ok(items[pos].value.clone())
-    }
-
+    let cli = SingleSentakuCli::with_keymap(items, keymap);
+    cli.wait_for_input(stdin)
 }
 
 /// Wait for user input and return an item user selects with default keymap.
 /// See also `default_keymap`
 pub fn wait_for_input<T: Clone>(stdin: &mut std::io::Stdin, items: &Vec<SentakuItem<T>>) -> Result<T, SentakuError> {
-    wait_for_input_with_keymap(stdin, items, &get_default_keymap())
+    wait_for_input_with_keymap(stdin, items, get_default_keymap())
 }
 
 #[cfg(test)]
