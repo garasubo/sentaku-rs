@@ -1,11 +1,6 @@
 use std::collections::HashMap;
-use std::io::Write;
 
-use termion::clear;
-use termion::cursor;
 use termion::event::Key;
-use termion::input::TermRead;
-use termion::raw::IntoRawMode;
 
 use crate::cli::{SingleSentakuCli, MultiSentakuAction};
 
