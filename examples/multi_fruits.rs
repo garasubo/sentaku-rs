@@ -1,4 +1,4 @@
-use sentaku::{SentakuError, SentakuItem, wait_for_input_with_keymap, get_default_keymap, SentakuAction};
+use sentaku::{SentakuError, SentakuItem};
 use std::io::stdin;
 use termion::event::Key;
 use webbrowser;

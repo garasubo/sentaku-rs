@@ -64,6 +64,8 @@ pub fn get_default_keymap<'a, T>() -> HashMap<Key, SentakuAction<'a, T>> {
     let mut result = HashMap::new();
     result.insert(Key::Up, SentakuAction::Up);
     result.insert(Key::Down, SentakuAction::Down);
+    result.insert(Key::Char('k'), SentakuAction::Up);
+    result.insert(Key::Char('j'), SentakuAction::Down);
     result.insert(Key::Char('\n'), SentakuAction::Select);
     result.insert(Key::Ctrl('c'), SentakuAction::Cancel);
 
@@ -79,6 +81,8 @@ pub fn get_default_multi_sentaku_keymap<'a, T>() -> HashMap<Key, MultiSentakuAct
     let mut result = HashMap::new();
     result.insert(Key::Up, MultiSentakuAction::Up);
     result.insert(Key::Down, MultiSentakuAction::Down);
+    result.insert(Key::Char('k'), MultiSentakuAction::Up);
+    result.insert(Key::Char('j'), MultiSentakuAction::Down);
     result.insert(Key::Char(' '), MultiSentakuAction::Select);
     result.insert(Key::Char('\n'), MultiSentakuAction::Finish);
     result.insert(Key::Ctrl('c'), MultiSentakuAction::Cancel);
