@@ -1,13 +1,15 @@
 use std::collections::{HashMap, HashSet};
 use std::io::Write;
 
-use termion::{clear, color, cursor};
 use termion::event::Key;
 use termion::input::TermRead;
 use termion::raw::IntoRawMode;
 use termion::style::Reset;
+use termion::{clear, color, cursor};
 
-use crate::{get_default_keymap, SentakuAction, SentakuError, SentakuItem, get_default_multi_sentaku_keymap};
+use crate::{
+    get_default_keymap, get_default_multi_sentaku_keymap, SentakuAction, SentakuError, SentakuItem,
+};
 
 pub struct SingleSentakuCli<'a, T> {
     items: &'a Vec<SentakuItem<T>>,
@@ -28,24 +30,34 @@ pub struct MultiSentakuCli<'a, T> {
     keymap: HashMap<Key, MultiSentakuAction<'a, T>>,
 }
 
-
 impl<'a, T: Clone> SingleSentakuCli<'a, T> {
     pub fn new(items: &'a Vec<SentakuItem<T>>) -> Self {
         Self::with_keymap(items, get_default_keymap())
     }
 
-    pub fn with_keymap(items: &'a Vec<SentakuItem<T>>, keymap: HashMap<Key, SentakuAction<'a, T>>) -> Self {
-        SingleSentakuCli {
-            items,
-            keymap,
-        }
+    pub fn with_keymap(
+        items: &'a Vec<SentakuItem<T>>,
+        keymap: HashMap<Key, SentakuAction<'a, T>>,
+    ) -> Self {
+        SingleSentakuCli { items, keymap }
     }
 
-    fn display_items(&self, stdout: &mut std::io::Stdout, pos: usize) -> Result<(), std::io::Error> {
+    fn display_items(
+        &self,
+        stdout: &mut std::io::Stdout,
+        pos: usize,
+    ) -> Result<(), std::io::Error> {
         for i in 0..self.items.len() {
             let item = &self.items[i];
             if pos == i {
-                write!(stdout, "{}{}{}{}\r\n", color::Bg(color::Black), color::Fg(color::White), item.label, Reset)?;
+                write!(
+                    stdout,
+                    "{}{}{}{}\r\n",
+                    color::Bg(color::Black),
+                    color::Fg(color::White),
+                    item.label,
+                    Reset
+                )?;
             } else {
                 write!(stdout, "{}\r\n", item.label)?;
             }
@@ -76,23 +88,28 @@ impl<'a, T: Clone> SingleSentakuCli<'a, T> {
             match action {
                 Some(SentakuAction::Down) => {
                     pos = std::cmp::min(pos + 1, self.items.len() - 1);
-                },
+                }
                 Some(SentakuAction::Up) => {
                     pos = std::cmp::max(1, pos) - 1;
-                },
+                }
                 Some(SentakuAction::Select) => {
                     break;
-                },
+                }
                 Some(SentakuAction::Cancel) => {
                     canceled = true;
                     break;
-                },
+                }
                 Some(SentakuAction::Action(f)) => {
                     f(&self.items[pos].value);
                 }
                 _ => {}
             }
-            write!(stdout, "{}{}", cursor::Up(self.items.len() as u16), clear::AfterCursor)?;
+            write!(
+                stdout,
+                "{}{}",
+                cursor::Up(self.items.len() as u16),
+                clear::AfterCursor
+            )?;
             self.display_items(&mut stdout, pos)?;
         }
 
@@ -111,11 +128,11 @@ impl<'a, T: Clone> MultiSentakuCli<'a, T> {
         Self::with_keymap(items, get_default_multi_sentaku_keymap())
     }
 
-    pub fn with_keymap(items: &'a Vec<SentakuItem<T>>, keymap: HashMap<Key, MultiSentakuAction<'a, T>>) -> Self {
-        MultiSentakuCli {
-            items,
-            keymap,
-        }
+    pub fn with_keymap(
+        items: &'a Vec<SentakuItem<T>>,
+        keymap: HashMap<Key, MultiSentakuAction<'a, T>>,
+    ) -> Self {
+        MultiSentakuCli { items, keymap }
     }
 
     pub fn add_key_assign(&mut self, key: Key, action: MultiSentakuAction<'a, T>) {
@@ -126,13 +143,32 @@ impl<'a, T: Clone> MultiSentakuCli<'a, T> {
         self.keymap.remove(&key);
     }
 
-    fn display_items(&self, stdout: &mut std::io::Stdout, pos: usize, selected: &HashSet<usize>) -> Result<(), std::io::Error> {
+    fn display_items(
+        &self,
+        stdout: &mut std::io::Stdout,
+        pos: usize,
+        selected: &HashSet<usize>,
+    ) -> Result<(), std::io::Error> {
         for i in 0..self.items.len() {
             let item = &self.items[i];
             if pos == i {
-                write!(stdout, "{}{}{}{}\r\n", color::Bg(color::Black), color::Fg(color::White), item.label, Reset)?;
+                write!(
+                    stdout,
+                    "{}{}{}{}\r\n",
+                    color::Bg(color::Black),
+                    color::Fg(color::White),
+                    item.label,
+                    Reset
+                )?;
             } else if selected.contains(&i) {
-                write!(stdout, "{}{}{}{}\r\n", color::Bg(color::Blue), color::Fg(color::White), item.label, Reset)?;
+                write!(
+                    stdout,
+                    "{}{}{}{}\r\n",
+                    color::Bg(color::Blue),
+                    color::Fg(color::White),
+                    item.label,
+                    Reset
+                )?;
             } else {
                 write!(stdout, "{}\r\n", item.label)?;
             }
@@ -156,21 +192,21 @@ impl<'a, T: Clone> MultiSentakuCli<'a, T> {
             match action {
                 Some(MultiSentakuAction::Down) => {
                     pos = std::cmp::min(pos + 1, self.items.len() - 1);
-                },
+                }
                 Some(MultiSentakuAction::Up) => {
                     pos = std::cmp::max(1, pos) - 1;
-                },
+                }
                 Some(MultiSentakuAction::Select) => {
                     if selected.contains(&pos) {
                         selected.remove(&pos);
                     } else {
                         selected.insert(pos);
                     }
-                },
+                }
                 Some(MultiSentakuAction::Cancel) => {
                     canceled = true;
                     break;
-                },
+                }
                 Some(MultiSentakuAction::Action(f)) => {
                     let mut values = Vec::new();
                     for i in 0..self.items.len() {
@@ -179,13 +215,18 @@ impl<'a, T: Clone> MultiSentakuCli<'a, T> {
                         }
                     }
                     f(&values);
-                },
+                }
                 Some(MultiSentakuAction::Finish) => {
                     break;
                 }
                 _ => {}
             }
-            write!(stdout, "{}{}", cursor::Up(self.items.len() as u16), clear::AfterCursor)?;
+            write!(
+                stdout,
+                "{}{}",
+                cursor::Up(self.items.len() as u16),
+                clear::AfterCursor
+            )?;
             self.display_items(&mut stdout, pos, &selected)?;
         }
 
@@ -204,5 +245,3 @@ impl<'a, T: Clone> MultiSentakuCli<'a, T> {
         }
     }
 }
-
-

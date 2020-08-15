@@ -1,8 +1,8 @@
-use sentaku::{SentakuError, SentakuItem, SentakuAction};
+use sentaku::cli::SingleSentakuCli;
+use sentaku::{SentakuAction, SentakuError, SentakuItem};
 use std::io::stdin;
 use termion::event::Key;
 use webbrowser;
-use sentaku::cli::SingleSentakuCli;
 
 fn main() {
     let mut stdin = stdin();
@@ -14,11 +14,14 @@ fn main() {
         webbrowser::open(&format!("https://crates.io/search?q={}", value)).unwrap();
     };
     let mut cli = SingleSentakuCli::new(&items);
-    cli.add_key_assign(Key::Char('o'), SentakuAction::Action(Box::new(open_browser)));
+    cli.add_key_assign(
+        Key::Char('o'),
+        SentakuAction::Action(Box::new(open_browser)),
+    );
     let result = cli.wait_for_input(&mut stdin);
     match result {
-        Ok(value) => { println!("{}", value) },
-        Err(SentakuError::Canceled) => { println!("Canceled") },
-        _ => { println!("Unexpected io error") },
+        Ok(value) => println!("{}", value),
+        Err(SentakuError::Canceled) => println!("Canceled"),
+        _ => println!("Unexpected io error"),
     }
 }

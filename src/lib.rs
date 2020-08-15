@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use termion::event::Key;
 
-use crate::cli::{SingleSentakuCli, MultiSentakuAction};
+use crate::cli::{MultiSentakuAction, SingleSentakuCli};
 
 pub mod cli;
 
@@ -104,7 +104,10 @@ pub fn wait_for_input_with_keymap<'a, T: Clone>(
 
 /// Wait for user input and return an item user selects with default keymap.
 /// See also `default_keymap`
-pub fn wait_for_input<T: Clone>(stdin: &mut std::io::Stdin, items: &Vec<SentakuItem<T>>) -> Result<T, SentakuError> {
+pub fn wait_for_input<T: Clone>(
+    stdin: &mut std::io::Stdin,
+    items: &Vec<SentakuItem<T>>,
+) -> Result<T, SentakuError> {
     wait_for_input_with_keymap(stdin, items, get_default_keymap())
 }
 

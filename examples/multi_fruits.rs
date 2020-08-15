@@ -1,8 +1,8 @@
+use sentaku::cli::{MultiSentakuAction, MultiSentakuCli};
 use sentaku::{SentakuError, SentakuItem};
 use std::io::stdin;
 use termion::event::Key;
 use webbrowser;
-use sentaku::cli::{MultiSentakuAction, MultiSentakuCli};
 
 fn main() {
     let mut stdin = stdin();
@@ -16,11 +16,14 @@ fn main() {
         }
     };
     let mut cli = MultiSentakuCli::new(&items);
-    cli.add_key_assign(Key::Char('o'), MultiSentakuAction::Action(Box::new(open_browser)));
+    cli.add_key_assign(
+        Key::Char('o'),
+        MultiSentakuAction::Action(Box::new(open_browser)),
+    );
     let result = cli.wait_for_input(&mut stdin);
     match result {
-        Ok(values) => { println!("{}", values.join(", ")) },
-        Err(SentakuError::Canceled) => { println!("Canceled") },
-        _ => { println!("Unexpected io error") },
+        Ok(values) => println!("{}", values.join(", ")),
+        Err(SentakuError::Canceled) => println!("Canceled"),
+        _ => println!("Unexpected io error"),
     }
 }
