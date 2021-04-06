@@ -11,6 +11,7 @@ pub mod cli;
 pub enum SentakuError {
     EmptyList,
     Canceled,
+    NotTTY,
     IoError(std::io::Error),
 }
 

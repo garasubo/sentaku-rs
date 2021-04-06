@@ -22,6 +22,7 @@ fn main() {
     match result {
         Ok(value) => println!("{}", value),
         Err(SentakuError::Canceled) => println!("Canceled"),
+        Err(SentakuError::NotTTY) => println!("Not in TTY mode"),
         _ => println!("Unexpected io error"),
     }
 }

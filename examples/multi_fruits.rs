@@ -24,6 +24,7 @@ fn main() {
     match result {
         Ok(values) => println!("{}", values.join(", ")),
         Err(SentakuError::Canceled) => println!("Canceled"),
+        Err(SentakuError::NotTTY) => println!("Not in TTY mode"),
         _ => println!("Unexpected io error"),
     }
 }

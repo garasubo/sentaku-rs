@@ -78,6 +78,9 @@ impl<'a, T: Clone> SingleSentakuCli<'a, T> {
         if self.items.is_empty() {
             return Err(SentakuError::EmptyList);
         }
+        if !termion::is_tty(stdin) {
+            return Err(SentakuError::NotTTY);
+        }
         let mut stdout = std::io::stdout().into_raw_mode()?;
         let mut pos = 0;
         write!(stdout, "{}", cursor::Hide)?;
